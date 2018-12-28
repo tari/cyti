@@ -25,6 +25,23 @@ cdef extern from "ticalcs.h":
     ctypedef struct CalcHandle:
         pass
 
+    ctypedef enum CalcPixelFormat:
+        CALC_PIXFMT_MONO = 1
+        CALC_PIXFMT_GRAY_4 = 2
+        CALC_PIXFMT_RGB_565_LE = 3
+
+    ctypedef enum CalcScreenFormat:
+        SCREEN_FULL
+        SCREEN_CLIPPED
+
+    ctypedef struct CalcScreenCoord:
+        int format
+        unsigned int width
+        unsigned int height
+        unsigned int clipped_width
+        unsigned int clipped_height
+        CalcPixelFormat pixel_format
+
     int ticalcs_library_init()
     int ticalcs_library_exit()
 
@@ -48,5 +65,7 @@ cdef extern from "ticalcs.h":
     int ticalcs_calc_recv_var(CalcHandle* calc_handle, int calc_mode, tifiles.FileContent* file_content, tifiles.VarEntry* var_entry)
     int ticalcs_calc_send_var(CalcHandle* calc_handle, int calc_mode, tifiles.FileContent* file_content)
     int ticalcs_calc_del_var(CalcHandle* calc_handle, tifiles.VarEntry* var_entry)
+
+    int ticalcs_calc_recv_screen(CalcHandle* calc_handle, CalcScreenCoord* sc, uint8_t** bitmap)
 
     int ticalcs_probe(ticables.CableModel cable_model, ticables.CablePort cable_port, tifiles.CalcModel* calc_model, int all)

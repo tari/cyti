@@ -18,6 +18,7 @@
 # CyTI core types/functions
 
 import atexit
+from cpython cimport array
 
 from cyti.clibs cimport ticables, ticalcs, tifiles, ticonv, glib
 
@@ -225,6 +226,24 @@ cdef class Calculator:
 
         result = self._send_variable(var)
         return result == 0
+
+    cdef get_screenshot(self):
+        cdef ticalcs.CalcScreenCoord sc
+        sc.format = ticalcs.CalcScreenFormat.SCREEN_FULL
+        sc.pixel_format = ticalcs.CalcPixelFormat.CALC_PIXFMT_RGB_565_LE
+
+        cdef uint8_t *bitmap
+        err = ticalcs.ticalcs_calc_recv_screen(self.calc_handle, &sc, &bitmap)
+        if err:
+            raise IOError("Failed to get screenshot: %i" % err)
+
+        cdef array.array bitmap_out
+        try:
+            bitmap_out = array.array('H')
+            array.extend_buffer(bitmap_out, <char*> bitmap, sc.width * sc.height)
+            return (sc.width, sc.height, bitmap_out)
+        finally:
+            free(bitmap)
 
     cpdef _retrieve_variable_array(self, VariableRequest variable):
         cdef tifiles.FileContent file_content
